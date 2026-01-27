@@ -1,0 +1,28 @@
+{
+  "name": "api-proyecto",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "mysql-client": "^0.3.0",
+    "mysql2": "^3.16.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.6.2",
+    "nodemon": "^3.1.11"
+  }
+}
