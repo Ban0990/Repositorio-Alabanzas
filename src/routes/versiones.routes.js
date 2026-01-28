@@ -4,6 +4,7 @@ import {
   listarPorCancion,
   crearVersion,
   activarVersion,
+  transponerVersion
 } from "../controladores/versiones.controller.js";
 import { requireSongEdit } from "../middlewares/song-permission.middleware.js";
 
