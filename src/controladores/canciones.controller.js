@@ -2,10 +2,67 @@ import { conmysql } from "../db.js";
 
 export const listarCanciones = async (req, res, next) => {
   try {
-    const [rows] = await conmysql.query(
-      "SELECT id, titulo, autor, tono_original, bpm, activa, created_at FROM canciones ORDER BY id DESC"
+    const { search, tono, bpm_min, bpm_max, activa, page = 1, limit = 20 } = req.query;
+
+    const p = Math.max(parseInt(page, 10) || 1, 1);
+    const l = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100); // máx 100
+    const offset = (p - 1) * l;
+
+    let where = "WHERE 1=1";
+    const params = [];
+
+    if (search) {
+      where += " AND (titulo LIKE ? OR autor LIKE ?)";
+      params.push(`%${search}%`, `%${search}%`);
+    }
+
+    if (tono) {
+      where += " AND tono_original = ?";
+      params.push(tono);
+    }
+
+    if (activa !== undefined) {
+      where += " AND activa = ?";
+      params.push(Number(activa) ? 1 : 0);
+    }
+
+    if (bpm_min) {
+      where += " AND bpm >= ?";
+      params.push(Number(bpm_min));
+    }
+
+    if (bpm_max) {
+      where += " AND bpm <= ?";
+      params.push(Number(bpm_max));
+    }
+
+    // total (para paginación)
+    const [countRows] = await conmysql.query(
+      `SELECT COUNT(*) AS total FROM canciones ${where}`,
+      params
     );
-    res.json({ ok: true, data: rows });
+    const total = countRows[0]?.total || 0;
+
+    // data
+    const [rows] = await conmysql.query(
+      `SELECT id, titulo, autor, tono_original, bpm, activa, created_at
+       FROM canciones
+       ${where}
+       ORDER BY id DESC
+       LIMIT ? OFFSET ?`,
+      [...params, l, offset]
+    );
+
+    return res.json({
+      ok: true,
+      meta: {
+        page: p,
+        limit: l,
+        total,
+        total_pages: Math.ceil(total / l),
+      },
+      data: rows,
+    });
   } catch (e) {
     next(e);
   }
