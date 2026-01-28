@@ -9,6 +9,8 @@ import usuariosRoutes from "./routes/usuarios.routes.js";
 import cancionesRoutes from "./routes/canciones.routes.js";
 import instrumentosRoutes from "./routes/instrumentos.routes.js";
 import versionesRoutes from "./routes/versiones.routes.js";
+import audiosRoutes from "./routes/audios.routes.js";
+
 
 // Middleware de errores
 import errorMiddleware from "./middlewares/error.middleware.js";
@@ -42,6 +44,7 @@ app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/canciones", cancionesRoutes);
 app.use("/api/instrumentos", instrumentosRoutes);
 app.use("/api/versiones", versionesRoutes);
+app.use("/api/audios", audiosRoutes);
 
 // ✅ Middleware de errores (antes del 404 no, después de rutas sí)
 app.use(errorMiddleware);
