@@ -5,6 +5,7 @@ import {
   crearVersion,
   activarVersion,
 } from "../controladores/versiones.controller.js";
+import { requireSongEdit } from "../middlewares/song-permission.middleware.js";
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const router = Router();
 router.get("/cancion/:cancionId", authMiddleware, listarPorCancion);
 
 // Crear nueva versión
-router.post("/", authMiddleware, crearVersion);
+router.post("/", authMiddleware, requireSongEdit, crearVersion);
 
 // Activar versión
 router.put("/:id/activar", authMiddleware, activarVersion);

@@ -7,6 +7,7 @@ import {
   actualizarCancion,
   detalleCancion
 } from "../controladores/canciones.controller.js";
+import { requireSongEdit } from "../middlewares/song-permission.middleware.js";
 
 const router = Router();
 
@@ -14,6 +15,6 @@ router.get("/", authMiddleware, listarCanciones);
 router.get("/:id", authMiddleware, obtenerCancion);
 router.get("/:id/detalle", authMiddleware, detalleCancion);
 router.post("/", authMiddleware, crearCancion);
-router.put("/:id", authMiddleware, actualizarCancion);
+router.put("/:id", authMiddleware, requireSongEdit, actualizarCancion);
 
 export default router;
