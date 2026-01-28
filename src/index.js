@@ -3,9 +3,13 @@ import { PORT } from "./config.js";
 import { probarConexion } from "./db.js";
 
 (async () => {
-  await probarConexion();
+  try {
+    await probarConexion();
+  } catch (e) {
+    console.error("⚠️ La API arrancará aunque la DB falle (revisa ENV en Render).");
+  }
 
   app.listen(PORT, () => {
-    console.log(`🚀 API corriendo en http://localhost:${PORT}`);
+    console.log(`🚀 API corriendo en puerto ${PORT}`);
   });
 })();
