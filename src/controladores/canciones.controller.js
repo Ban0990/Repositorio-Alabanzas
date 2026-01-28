@@ -66,3 +66,65 @@ export const actualizarCancion = async (req, res, next) => {
     next(e);
   }
 };
+
+export const detalleCancion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // 1) canción
+    const [songRows] = await conmysql.query("SELECT * FROM canciones WHERE id = ? LIMIT 1", [id]);
+    const song = songRows[0];
+    if (!song) return res.status(404).json({ ok: false, error: "Canción no encontrada" });
+
+    // 2) instrumentos
+    const [instRows] = await conmysql.query("SELECT id, nombre FROM instrumentos ORDER BY id ASC");
+
+    // 3) versiones actuales por instrumento (solo es_actual=1)
+    const [verRows] = await conmysql.query(
+      `SELECT va.id, va.instrumento_id, va.tono, va.bpm, va.contenido, va.creado_por, va.created_at
+       FROM versiones_acordes va
+       WHERE va.cancion_id = ? AND va.es_actual = true`,
+      [id]
+    );
+
+    // 4) audios
+    const [audioRows] = await conmysql.query(
+      `SELECT id, instrumento_id, url, tipo, created_at
+       FROM audios
+       WHERE cancion_id = ?
+       ORDER BY created_at DESC`,
+      [id]
+    );
+
+    // 5) ritmos
+    const [ritmoRows] = await conmysql.query(
+      `SELECT id, bpm, compas, patron, creado_por, created_at
+       FROM ritmos
+       WHERE cancion_id = ?
+       ORDER BY created_at DESC`,
+      [id]
+    );
+
+    // map versiones por instrumento_id
+    const versionActualByInstrumento = {};
+    for (const v of verRows) versionActualByInstrumento[v.instrumento_id] = v;
+
+    // respuesta final “lista para app”
+    const instrumentos = instRows.map((i) => ({
+      ...i,
+      version_actual: versionActualByInstrumento[i.id] || null,
+    }));
+
+    return res.json({
+      ok: true,
+      data: {
+        cancion: song,
+        instrumentos,
+        audios: audioRows,
+        ritmos: ritmoRows,
+      },
+    });
+  } catch (e) {
+    next(e);
+  }
+};

@@ -5,12 +5,14 @@ import {
   obtenerCancion,
   crearCancion,
   actualizarCancion,
+  detalleCancion
 } from "../controladores/canciones.controller.js";
 
 const router = Router();
 
 router.get("/", authMiddleware, listarCanciones);
 router.get("/:id", authMiddleware, obtenerCancion);
+router.get("/:id/detalle", authMiddleware, detalleCancion);
 router.post("/", authMiddleware, crearCancion);
 router.put("/:id", authMiddleware, actualizarCancion);
 
