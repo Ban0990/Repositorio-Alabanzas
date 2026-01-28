@@ -1,4 +1,5 @@
 import { conmysql } from "../db.js";
+import { transposeContenido, transposeChord } from "../utils/transposer.js";
 
 export const listarPorCancion = async (req, res, next) => {
   try {
@@ -84,6 +85,46 @@ export const activarVersion = async (req, res, next) => {
     );
 
     res.json({ ok: true, message: "Versión activada" });
+  } catch (e) {
+    next(e);
+  }
+};
+// cambio de tono en tiempo real
+export const transponerVersion = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const semitonos = Number(req.query.semitonos || 0);
+
+    if (!Number.isFinite(semitonos) || semitonos < -24 || semitonos > 24) {
+      return res.status(400).json({ ok: false, error: "semitonos inválido (-24 a 24)" });
+    }
+
+    const [rows] = await conmysql.query(
+      "SELECT id, cancion_id, instrumento_id, contenido, tono, bpm, created_at FROM versiones_acordes WHERE id = ? LIMIT 1",
+      [id]
+    );
+
+    const ver = rows[0];
+    if (!ver) return res.status(404).json({ ok: false, error: "Versión no encontrada" });
+
+    const contenidoObj = typeof ver.contenido === "string" ? JSON.parse(ver.contenido) : ver.contenido;
+
+    const contenidoTranspuesto = transposeContenido(contenidoObj, semitonos);
+
+    // tono resultante (si existe tono)
+    const tonoFinal = ver.tono ? transposeChord(ver.tono, semitonos) : null;
+
+    return res.json({
+      ok: true,
+      data: {
+        version_id: ver.id,
+        semitonos,
+        tono_original: ver.tono || null,
+        tono_final: tonoFinal,
+        bpm: ver.bpm,
+        contenido: contenidoTranspuesto,
+      },
+    });
   } catch (e) {
     next(e);
   }

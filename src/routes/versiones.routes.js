@@ -11,6 +11,8 @@ const router = Router();
 
 // Lista versiones de una canción (opcional filtro ?instrumento=guitarra)
 router.get("/cancion/:cancionId", authMiddleware, listarPorCancion);
+// Transponer acordes 
+router.get("/:id/transponer", authMiddleware, transponerVersion);
 
 // Crear nueva versión
 router.post("/", authMiddleware, requireSongEdit, crearVersion);
