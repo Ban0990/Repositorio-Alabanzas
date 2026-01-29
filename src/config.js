@@ -6,6 +6,7 @@ export const DB_NAME = process.env.DB_NAME || "baseapp2025";
 export const DB_USER = process.env.DB_USER || "root";
 export const DB_PASS = process.env.DB_PASS || "";
 export const DB_PORT = Number(process.env.DB_PORT || 3306);
+export const NODE_ENV = process.env.NODE_ENV || "development";
 
 export const PORT = Number(process.env.PORT || 3000);
 // JWT and Token configuration
