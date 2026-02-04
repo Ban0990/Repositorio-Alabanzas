@@ -184,4 +184,31 @@ export const detalleCancion = async (req, res, next) => {
   } catch (e) {
     next(e);
   }
+}
+  export const cancionesPorAutor = async (req, res) => {
+  try {
+    const { autor } = req.params;
+
+    const [rows] = await conmysql.query(
+      `SELECT id, titulo, autor, tono_original, bpm
+       FROM canciones
+       WHERE autor = ?
+       ORDER BY titulo ASC`,
+      [autor]
+    );
+
+    res.json({
+      ok: true,
+      data: rows
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      error: "Error al obtener canciones por autor"
+    });
+  }
 };
+
+
