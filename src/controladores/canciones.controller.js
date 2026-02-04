@@ -210,5 +210,29 @@ export const detalleCancion = async (req, res, next) => {
     });
   }
 };
+export const actualizarLetra = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { letra } = req.body;
+
+    await conmysql.query(
+      "UPDATE canciones SET letra = ? WHERE id = ?",
+      [letra, id]
+    );
+
+    res.json({
+      ok: true,
+      message: "Letra actualizada"
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      ok: false,
+      error: "Error al actualizar letra"
+    });
+  }
+};
+
 
 
