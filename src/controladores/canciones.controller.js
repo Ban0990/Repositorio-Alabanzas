@@ -128,19 +128,35 @@ export const detalleCancion = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // 1) canción
-    const [songRows] = await conmysql.query("SELECT * FROM canciones WHERE id = ? LIMIT 1", [id]);
+    // 1) canción (incluye letra)
+    const [songRows] = await conmysql.query(
+      "SELECT id, titulo, autor, tono_original, bpm, letra, activa, created_at FROM canciones WHERE id = ? LIMIT 1",
+      [id]
+    );
+
     const song = songRows[0];
     if (!song) return res.status(404).json({ ok: false, error: "Canción no encontrada" });
 
     // 2) instrumentos
-    const [instRows] = await conmysql.query("SELECT id, nombre FROM instrumentos ORDER BY id ASC");
+    const [instRows] = await conmysql.query(
+      "SELECT id, nombre FROM instrumentos ORDER BY id ASC"
+    );
 
-    // 3) versiones actuales por instrumento (solo es_actual=1)
+    // 3) versiones ACTUALES por instrumento (solo es_actual=1) + nombre instrumento
     const [verRows] = await conmysql.query(
-      `SELECT va.id, va.instrumento_id, va.tono, va.bpm, va.contenido, va.creado_por, va.created_at
+      `SELECT 
+          va.id AS version_id,
+          va.instrumento_id,
+          i.nombre AS instrumento_nombre,
+          va.tono,
+          va.bpm,
+          va.contenido,
+          va.creado_por,
+          va.created_at
        FROM versiones_acordes va
-       WHERE va.cancion_id = ? AND va.es_actual = true`,
+       JOIN instrumentos i ON i.id = va.instrumento_id
+       WHERE va.cancion_id = ? AND va.es_actual = true
+       ORDER BY va.instrumento_id ASC`,
       [id]
     );
 
@@ -162,29 +178,32 @@ export const detalleCancion = async (req, res, next) => {
       [id]
     );
 
-    // map versiones por instrumento_id
+    // map de version_actual por instrumento_id
     const versionActualByInstrumento = {};
     for (const v of verRows) versionActualByInstrumento[v.instrumento_id] = v;
 
-    // respuesta final “lista para app”
+    // instrumentos con version actual
     const instrumentos = instRows.map((i) => ({
       ...i,
       version_actual: versionActualByInstrumento[i.id] || null,
     }));
 
+    // ✅ RESPUESTA PLANA (lo que tu frontend espera)
     return res.json({
       ok: true,
       data: {
-        cancion: song,
+        ...song,               // ← aquí viene letra
         instrumentos,
         audios: audioRows,
         ritmos: ritmoRows,
+        versiones: verRows     // ← para tu select (instrumento_nombre, version_id)
       },
     });
   } catch (e) {
     next(e);
   }
-}
+};
+
   export const cancionesPorAutor = async (req, res) => {
   try {
     const { autor } = req.params;
